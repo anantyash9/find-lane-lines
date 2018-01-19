@@ -1,47 +1,54 @@
 # **Finding Lane Lines on the Road** 
-
-## Writeup Template
-
-### You can use this file as a template for your writeup if you want to submit it as a markdown file. But feel free to use some other method and submit a pdf if you prefer.
-
----
-
-**Finding Lane Lines on the Road**
-
 The goals / steps of this project are the following:
 * Make a pipeline that finds lane lines on the road
 * Reflect on your work in a written report
 
+## 1. My Pipeline
 
-[//]: # (Image References)
+The image/frames are passed through these steps
+* Convert the image to HSL (Hue, Saturation, Lightness) color space
+* Filters out everything that is not a shade white or yellow using thresholds
+* Remove noise with gaussian blur
+* Find edges with canny edge detection
+* Find lines with Hough lines function 
+* Calculate average slope and x,y co-ordinate for left and right lanes.
+* Calculate the average position for lane line between the current frame and last 5 frames ( only for video) 
+* Draw the lines with a suitable opacity on the original image/frame
 
-[image1]: ./examples/grayscale.jpg "Grayscale"
+**Helper Functions** 
+I added 3 new helper functions and modified draw_lines() to to draw a single line on the left and right lanes.
 
----
+1. reset_globals() - Resets the global variables. I use if before running each clip/image.
+2. hls() - Converts the image to HSL (Hue, Saturation, Lightness) color space.Makes lane line easier to distuinguish.
+3. lane_pass_filter() - Filters out everything that is not a shade of white or yellow.
 
-### Reflection
+**draw_lines()**
 
-### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
+I modified draw_lines to calculate the a average slope and x,y position of each lane.
 
-My pipeline consisted of 5 steps. First, I converted the images to grayscale, then I .... 
+Not all lines are used for calculating the average.
+* The lines with absolute slope greater than 2 or less that 1/2 are discarded and are not considered while calculating the average.
+* Similarly lines which are entirely on left or right half of the image are considered while calculating the average of their respective lanes. Lines with endpoints in different halfs of the image are not included in either lane.
 
-In order to draw a single line on the left and right lanes, I modified the draw_lines() function by ...
+The average slope and average x,y position for each lane is used to calculate the 'C' in Y = MX + C.
 
-If you'd like to include images to show how the pipeline works, here is how to include an image: 
+The upper and lower limit of the lines is same as region of interest so Y is known for both top and bottom points. Using the Y and calculated C the X is calculated. 
 
-![alt text][image1]
+To make the lane lines appear smooth in the video and avoide jitter caused by bad frames the average value of lane position in the last 5 frames is used instead of the one calculated for the current frame.
 
-
-### 2. Identify potential shortcomings with your current pipeline
-
-
-One potential shortcoming would be what would happen when ... 
-
-Another shortcoming could be ...
+Incase of a bad frame where no lines are found the running average value stored in global variables is used.
 
 
-### 3. Suggest possible improvements to your pipeline
+## 2. Shortcomings with the pipeline
 
-A possible improvement would be to ...
+* The pipline will not give reliable results when there is a turns or bend visible in the area of interest because it models lanes as straight lines.
+* The fact that it uses running average to maintain lane positions means it will be slow to respond to sudden changes in lanes.
+* The pipline will only work for lanes marked with yellow and white.
 
-Another potential improvement could be to ...
+
+
+## 3. Possible improvements to the pipeline
+
+A possible improvement would be to replace lane_pass_filter() with a filter that works (reliably) regardless of the color in which the lane lines are marked.
+
+Another potential improvement could be made to handel changes in lane positions better by contineously adjusting how many frames are used to calculate the average value of lanes. If the lane position and slope are changing fast then the number of frames used to calculate average can be reduced to make it more responsive and if the lane position is not varying that fast it can be increased to have more resistance to noise or bad frames.      
