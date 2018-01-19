@@ -47,6 +47,7 @@ In case of a bad frame where no lines are found the running average value stored
 * The pipeline will not give reliable results when there is a turns or bend visible in the area of interest because it models lanes as straight lines.
 * The fact that it uses running average to maintain lane positions means it will be slow to respond to sudden changes in lanes.
 * The pipeline will only work for lanes marked with yellow and white.
+* Region of interest has to be manually selected according to the placement of lanes on the road.
 
 
 
